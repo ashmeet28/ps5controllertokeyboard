@@ -7,23 +7,51 @@ for device_path in list_devices():
         ps5_controller = InputDevice(device_path)
         break
 
-
 ps5_controller.grab()
+print(ps5_controller)
 ui = UInput()
+print(ui)
 
 is_key_w_down = False
 is_key_s_down = False
 is_key_a_down = False
 is_key_d_down = False
 
+is_key_enter_down = False
+is_key_esc_down = False
+
 for event in ps5_controller.read_loop():
+    # print(event)
+
     if event.type == 1 and event.code == 318:
         break
-    if event.type == 1 and event.code == 317:
-        break
 
-    # print(event)
     # continue
+
+    if (event.type == 3 and event.code == 4 and event.value > 127+64+10 and 
+        (not is_key_enter_down)):
+        ui.write(ecodes.EV_KEY, ecodes.KEY_ENTER, 1)
+        ui.syn()
+        is_key_enter_down = True
+        
+
+    if (event.type == 3 and event.code == 4 and event.value < 127+64-10 and 
+        is_key_enter_down):
+        ui.write(ecodes.EV_KEY, ecodes.KEY_ENTER, 0)
+        ui.syn()
+        is_key_enter_down = False
+
+    if (event.type == 3 and event.code == 4 and event.value < 127-64-10 and 
+        (not is_key_esc_down)):
+        ui.write(ecodes.EV_KEY, ecodes.KEY_ESC, 1)
+        ui.syn()
+        is_key_esc_down = True
+
+    if (event.type == 3 and event.code == 4 and event.value > 127-64+10 and 
+        is_key_esc_down):
+        ui.write(ecodes.EV_KEY, ecodes.KEY_ESC, 0)
+        ui.syn()
+        is_key_esc_down = False
 
     if event.type == 3 and event.code == 17 and event.value == -1:
         ui.write(ecodes.EV_KEY, ecodes.KEY_W, 1)
